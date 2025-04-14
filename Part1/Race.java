@@ -1,4 +1,5 @@
 import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
 import java.lang.Math;
 
 /**
@@ -20,8 +21,7 @@ public class Race
     
     // REPLACEMENT
     // to ensure variable horses can run:
-    private Horse[] horses;
-    
+    private ArrayList<Horse> horses = new ArrayList<>();
     
 
     /**
@@ -34,7 +34,6 @@ public class Race
     {
         // initialise instance variables
         raceLength = distance;
-        horses = new Horse[ numLanes ]; // updated code
         
         /*
         lane1Horse = null;
@@ -72,23 +71,12 @@ public class Race
         }
         */
 
-       // REPLACEMENT        
-        if ( (laneNumber >= 1) && (laneNumber <= horses.length) ){
-        	horses[laneNumber-1] = theHorse;
+       // REPLACEMENT
+        if (laneNumber > 0){
+            horses.add(laneNumber-1, theHorse);
         }
         else{
-            System.out.println("Error: cannot add horse to lane since lane " + laneNumber + " does not exist");
-
-            // we can alternatively use this code if we want to add horses and lanes simultaneously
-        	/*Horse[] newHorses = new Horse[ laneNumber ];
-
-            // copy horse array to new horses array
-            for (int index = 0; index < horses.length; index++){
-                newHorses[index] = horses[index];
-            }
-
-            newHorses[laneNumber-1] = theHorse;
-            horses = newHorses;*/
+            System.out.println("Error: Cannot add horse to lane " + laneNumber);
         }
         
         return;        
