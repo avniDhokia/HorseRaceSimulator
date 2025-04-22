@@ -52,6 +52,12 @@ public class Horse
     //Other methods of class Horse
     public void fall()
     {
+        horseConfidence = horseConfidence - 0.1;
+        
+       	if (horseConfidence <= 0){
+            horseConfidence = 0.1;
+        }
+        
         horseFallen = true;
     }
     
