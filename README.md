@@ -45,16 +45,32 @@ Clone the repository. Ensure all the following files are present and in the same
 You can either use the GUI implementation or the CLI implementation.
 
 1. Compile the code. Open the terminal and set the current directory to the folder where the .java files are kept. Run:
+
    ```bash
-   javac RunRaceCLI.java``` if you want to use the CLI
-   or
-   ```bash
-   javac RunRaceGUI.java``` if you want to use the GUI
+   javac RunRaceCLI.java
+   ```
    
-2. Run the compiled code:
+   if you want to use the CLI or
+   
    ```bash
-   java RunRaceCLI``` if you want to use the CLI. This invokes the method ```startRace```
-   or
+   javac RunRaceGUI.java
+   ```
+
+   if you want to use the GUI
+
+3. Run the compiled code:
+
    ```bash
-   java RunRaceGUI``` if you want to use the GUI. This invokes the method ```startRaceGUI```
+   java RunRaceCLI
+   ```
+
+   if you want to use the CLI. This invokes the method `startRace`.
+
+   Alternatively run:
+   
+   ```bash
+   java RunRaceGUI
+   ```
+
+   if you want to use the GUI. This invokes the method `startRaceGUI`.
 
