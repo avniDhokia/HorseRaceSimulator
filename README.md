@@ -30,16 +30,20 @@ A Horse Race simulator with both CLI and GUI implementations.
 
 ## Installation
 Clone the repository. Ensure all the following files are present and in the same folder:
-   - Bet.java
-   - BettingAccount.java
-   - Breed.java
-   - Horse.java
-   - Race.java
-   - Track.java
-   - Race.java
-   - RaceGUI.java
-   - RunRaceGUI.java
-   - RunRaceCLI.java
+   - `Bet.java`
+   - `BettingAccount.java`
+   - `Breed.java`
+   - `Horse.java`
+   - `Race.java`
+   - `Track.java`
+   - `Race.java`
+   - `RaceGUI.java`
+   - `RunRaceGUI.java`
+   - `RunRaceCLI.java`
+
+Also ensure that you have this file for better functioning:
+   - `breeds.csv`
+     You can add your own custom breeds to this file by using it like a spreadsheet - it is not possible to create new breeds through the GUI.
 
 ## Usage
 You can either use the GUI implementation or the CLI implementation.
