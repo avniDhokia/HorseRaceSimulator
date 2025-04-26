@@ -1,6 +1,9 @@
+import java.util.ArrayList;
+
 class BettingAccount{
     int apples;         // apples is the currency of the betting system
     Bet bet = new Bet(0, null);
+    ArrayList<Bet> betHistory = new ArrayList<Bet>();
 
     public BettingAccount(int startApples){
         apples = startApples;
@@ -44,6 +47,7 @@ class BettingAccount{
 
     // win the bet, and set betAmount to 0
     public void winBet(){
+        betHistory.add(bet);
         apples = apples + (bet.getAmount() * (int)bet.getHorse().getOdds());
         bet.setAmount(0);
         bet.setHorse(null);
@@ -53,6 +57,7 @@ class BettingAccount{
     // lose the bet, and set betAmount to 0
     // if the user loses more apples than they have, warn them and set their apples to 0
     public void loseBet(){
+        betHistory.add(bet);
         apples = apples - bet.getAmount();
         bet.setAmount(0);
         bet.setHorse(null);
