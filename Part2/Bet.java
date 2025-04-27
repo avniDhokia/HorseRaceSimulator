@@ -9,6 +9,12 @@ class Bet{
         return;
     }
 
+    // copy
+    public Bet(Bet bet){
+        this.amount = bet.getAmount();
+        this.horse = bet.getHorse();
+        return;
+    }
 
     // setters
 

@@ -1,5 +1,7 @@
 import java.io.*;
+import java.util.Date;
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * Write a description of class Horse here.
@@ -13,7 +15,6 @@ public class Horse
     char horseSymbol;
     String horseName;
     double horseConfidence;
-    final double ORIGINAL_HORSE_CONFIDENCE;
     double distanceTravelled;	// arbitrary units
     boolean horseFallen;	// true if fallen
 
@@ -51,6 +52,37 @@ public class Horse
       
     //Constructors of class Horse
 
+    public Horse(char horseSymbol, String horseName, double horseConfidence){
+        this.horseSymbol = horseSymbol;
+        this.breed = breed;
+        this.speed = breed.getSpeed();
+        this.stamina = breed.getStamina();
+        this.colour = colour;
+        
+        // ensure horseName is valid
+        if (horseName == null || horseName.length() == 0){
+            System.out.println("Error: Name is empty or invalid. Name set to 'empty'");
+            this.horseName = "empty";
+        }
+        else{
+            this.horseName = horseName;
+        }
+
+        // ensure horseConfidence is valid
+        if (0<horseConfidence && horseConfidence<1){
+            this.horseConfidence = horseConfidence;
+        }
+        else{
+            System.out.println("Error: Confidence not in range: " + horseConfidence + ". Horse cannot be initialised. Setting confidence to 0.1");
+            this.horseConfidence = 0.1;
+        }
+
+        this.distanceTravelled = 0;
+        this.horseFallen = false;
+
+        return;
+    }
+
     public Horse(char horseSymbol, String horseName, double horseConfidence, String colour, Breed breed){
         this.horseSymbol = horseSymbol;
         this.breed = breed;
@@ -76,7 +108,7 @@ public class Horse
             this.horseConfidence = 0.1;
         }
 
-        ORIGINAL_HORSE_CONFIDENCE = this.horseConfidence;
+        horseConfidence = this.horseConfidence;
 
         this.distanceTravelled = 0;
         this.horseFallen = false;
@@ -93,15 +125,13 @@ public class Horse
 
         if (line == null){
             System.out.println("Error: Horse file is empty");
-            ORIGINAL_HORSE_CONFIDENCE = 0.1;
             return;
         }
 
         String[] brokenLine = line.split(",");
 
-        horseName = brokenLine[0];
+        horseName = brokenLine[0].replace("_"," ");
         horseConfidence = Double.parseDouble( brokenLine[1] );
-        ORIGINAL_HORSE_CONFIDENCE = horseConfidence;
         horseSymbol = brokenLine[2].charAt(0);
         colour = brokenLine[3];
         breed = new Breed(brokenLine[4], Double.parseDouble(brokenLine[5]), Double.parseDouble(brokenLine[6]));
@@ -115,10 +145,57 @@ public class Horse
         /* Structure of one line of Horse file:
             name,confidence,representation,colour,breedName,breedSpeed,breedStamina
         */
-       
-        pw.println(horseName + "," + horseConfidence + "," + horseSymbol + "," + colour + "," + breed.getBreedStringCSV());
+
+        String tempHorseName = horseName.replace(" ", "_");
+
+        pw.println(tempHorseName + "," + horseConfidence + "," + horseSymbol + "," + colour + "," + breed.getBreedStringCSV());
         return;
     }
+
+    public void writeRaceToHistory(Date date, String result, double averageSpeed){
+
+        Boolean writeHeader = false;
+        String tempHorseName = horseName.replace(" ", "_");
+
+        File file = new File(tempHorseName + "_history.csv");
+        if (!file.exists()){
+            writeHeader = true;
+        }
+
+        try (PrintWriter pw = new PrintWriter( new FileOutputStream(file, true) )){
+            if (writeHeader){
+                pw.println("Date,Result,Average Speed,Finish Time,Horse Fell?,Confidence");
+            }
+
+            pw.println(date + "," + result + "," + averageSpeed + "," + (startTime-endTime) + "," + horseFallen + "," + horseConfidence);
+        }
+        catch (IOException e){
+            System.out.println("Error: couldn't write race to horse history file");
+        }
+    }
+
+    // update confidence after winning a race
+    public void winRace(){
+        horseConfidence = horseConfidence + 0.05;
+
+        if (horseConfidence >= 1){
+            horseConfidence = 0.95;
+        }
+
+        return;
+    }
+
+    // update confidence after losing a race
+    public void loseRace(){
+        horseConfidence = horseConfidence - 0.05;
+
+        if (horseConfidence <= 0){
+            horseConfidence = 0.05;
+        }
+
+        return;
+    }
+
 
     // return a copy of the horse
     public Horse copyHorse(){
@@ -158,7 +235,6 @@ public class Horse
     public void prepareForRace(){
         speed = breed.getSpeed();
         stamina = breed.getStamina();
-        horseConfidence = ORIGINAL_HORSE_CONFIDENCE;
         startTime = 0;
         endTime = 0;
 
@@ -300,17 +376,26 @@ public class Horse
         return;
     }
 
+    public void moveForwardCLI(){
+        distanceTravelled = distanceTravelled + 1;
+        return;
+    }
+
     public void moveForward(){
 
         // decrease speed based on stamina
         if (staminaCounter >= stamina){
             staminaCounter = 0;
-            speed = speed - 0.5;
+            speed = speed - 0.1;
         }
+
+        Random random = new Random();
+        int randInt = random.nextInt(6);
+        randInt = randInt - 6;
         
         // move forward at the correct speed
-        distanceTravelled = distanceTravelled + speed + (horseConfidence * 10);
-        staminaCounter = staminaCounter + speed + (horseConfidence * 10);
+        distanceTravelled = distanceTravelled + speed + (horseConfidence * 10) + randInt;
+        staminaCounter = staminaCounter + speed + (horseConfidence * 10) + randInt;
 
         // maybe fall
         double fallLimit = (Math.pow(horseConfidence, 3) / 50);
@@ -421,6 +506,11 @@ public class Horse
     public double getConfidence(){
         return horseConfidence;
     }
+
+    public String getColour(){
+        return colour;
+    }
+
     
     public double getDistanceTravelled(){
         return distanceTravelled;
@@ -434,13 +524,9 @@ public class Horse
         return horseSymbol;
     }
 
-    public long getFinishTime(){
-        if (horseFallen){
-            return -1;
-        }
-        else{
-            return (startTime-endTime)/1000;
-        }
+    public double getFinishTime(){        
+        
+        return (endTime - startTime)/1000.0;
     }
 
     public Breed getBreed(){
