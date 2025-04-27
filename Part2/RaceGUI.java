@@ -49,15 +49,12 @@ class RaceSwingWorker extends SwingWorker<Void,Horse[]>{
 
         // do race
         while (!finished){
-            System.out.println("entered loop");
 
             // move each horse forward
             moveHorsesForward();
-            System.out.println("moved horses forward");
 
             // check if any horse has won
             finished = checkFinishedAndFallen();
-            System.out.println("checked finished");
 
             // display horses
             publish(racingHorses);
@@ -270,7 +267,6 @@ class RaceSwingWorker extends SwingWorker<Void,Horse[]>{
     private void moveHorsesForward(){
         for (Horse h : racingHorses){
             if (h!=null && !h.hasFallen()){
-                System.out.println("moving " + h.getName() + " forward");
                 h.moveForward();
             }
         }
@@ -285,7 +281,6 @@ class RaceSwingWorker extends SwingWorker<Void,Horse[]>{
         for (Horse h : racingHorses){
             if (! (h==null)){
                 if (h.getDistanceTravelled() == selectedTrack.getRaceLength()){
-                    System.out.println(h.getDistanceTravelled() + "==" + selectedTrack.getRaceLength());
                     h.setEndTime(endTime);
                     finished = true;
                 }
@@ -517,7 +512,7 @@ class RaceGUI{
         analyticsEditorPane.setBackground(lightest);
         analyticsEditorPane.setContentType("text/html");
         analyticsEditorPane.setEditable(false);
-        analyticsEditorPane.setText("<h1>Analytics</h1><hr><p>Check out all the <strong>horse's past races and performances</strong>, and see the <strong>fastest race times</strong> on all the tracks!</p>"+
+        analyticsEditorPane.setText("<h1>Analytics</h1><hr><p>Check out all the <strong>horse's past races and performances</strong>, and see the <strong>fastest race times</strong> on all the tracks! View <strong>track best times</strong> by viewing the track stats!</p>"+
                                     "<p>Will your favourite horse reach the top of the leaderboard?</p>");
         
         //gbc.gridx = 1;
@@ -583,9 +578,9 @@ class RaceGUI{
             String selectedTrackName = (String)trackHistoryCombo.getSelectedItem();
             JFrame trackHistoryFrame = createJFrame(NAME_BASE + " - " + selectedTrackName + " History");
 
-            int numLines = countFileLines(selectedTrackName + "_history.csv");
+            int[] numLinesAndColumns = countFileLines(selectedTrackName + "_history.csv");
 
-            developHistoryScreen(trackHistoryFrame, selectedTrackName, numLines);
+            developHistoryScreen(trackHistoryFrame, selectedTrackName, numLinesAndColumns[0], numLinesAndColumns[1]);
             trackHistoryFrame.setVisible(true);
         });
         trackHistorySelectionPanel.add(trackHistoryButton);
@@ -625,9 +620,9 @@ class RaceGUI{
 
             selectedHorseName = selectedHorseName.replace(" ", "_");
 
-            int numLines = countFileLines(selectedHorseName + "_history.csv");
+            int[] numLinesAndColumns = countFileLines(selectedHorseName + "_history.csv");
 
-            developHistoryScreen(horseHistoryFrame, selectedHorseName, numLines);
+            developHistoryScreen(horseHistoryFrame, selectedHorseName, numLinesAndColumns[0], numLinesAndColumns[1]);
             horseHistoryFrame.setVisible(true);
         });
         horseHistorySelectionPanel.add(horseHistoryButton);
@@ -667,9 +662,9 @@ class RaceGUI{
 
             selectedUsername = selectedUsername.replace(" ", "_");
 
-            int numLines = countFileLines(selectedUsername + "_history.csv");
+            int[] numLinesAndColumns = countFileLines(selectedUsername + "_history.csv");
 
-            developHistoryScreen(betHistoryFrame, selectedUsername, numLines);
+            developHistoryScreen(betHistoryFrame, selectedUsername, numLinesAndColumns[0], numLinesAndColumns[1]);
             betHistoryFrame.setVisible(true);
         });
         betHistorySelectionPanel.add(betHistoryButton);
@@ -686,21 +681,27 @@ class RaceGUI{
     }
 
     // helper used by: developViewAnalyticsScreen()
-    public static int countFileLines(String fileName){
+    public static int[] countFileLines(String fileName){
         int numLines = 0;
+        int numColumns = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
-            while (br.readLine() != null) {
+            String line = br.readLine();
+            while (line != null) {
                 numLines++;
+                numColumns = line.split(",").length;
+                line = br.readLine();
             }
         } catch (IOException e) {
             System.out.println("Error reading " + fileName + " file.");
         }
 
-        return numLines;
+        int[] results = {numLines, numColumns};
+
+        return results;
     }
 
     // helper used by: developViewAnalyticsScreen()
-    public static void developHistoryScreen(JFrame frame, String name, int numLines){
+    public static void developHistoryScreen(JFrame frame, String name, int numLines, int numColumns){
         JButton cancel = new JButton("Cancel");
         cancel.addActionListener(e->{
             frame.dispose();
@@ -711,11 +712,11 @@ class RaceGUI{
         });
         frame.add(historyNavPanel, BorderLayout.PAGE_START);
 
-        JPanel workingPanel = new JPanel();
-        workingPanel.setBackground(background);
+        frame.setBackground(background);
+        JScrollPane scrollPane;
 
         File trackFile = new File(name + "_history.csv");
-        Object[][] data = new Object[numLines][7];
+        Object[][] data = new Object[numLines][numColumns];
         String[] columnNames = {"history"};
 
         if (!trackFile.exists()){
@@ -727,7 +728,7 @@ class RaceGUI{
             errorPane.setText("There's no data for " + name + " yet! Try doing a race with " + name + " and then check back.");
             errorPane.setEditable(false);
             errorPane.setBackground(lightest);
-            workingPanel.add(errorPane);
+            frame.add(errorPane);
         }
         else{
             try (BufferedReader br = new BufferedReader(new FileReader(trackFile))){
@@ -750,21 +751,17 @@ class RaceGUI{
                 }
                     
                 JTable infoTable = new JTable(data, columnNames);
-                JScrollPane scrollPane = new JScrollPane(infoTable);
+                scrollPane = new JScrollPane(infoTable);
                 infoTable.setFillsViewportHeight(true);
-                workingPanel.add(scrollPane);
+                frame.add(scrollPane);
             }
             catch (IOException e) {
                 System.out.println("Error reading " + name + " file.");
             }
         }
 
-
-        frame.add(workingPanel);
-
         return;
     }
-
 
     // helper used by: developViewAnalyticsScreen()
     public static void developHorseHistoryScreen(JFrame horseHistoryFrame, String horseName){
@@ -772,18 +769,6 @@ class RaceGUI{
 
         return;
     }
-
-
-    // helper used by: developViewAnalyticsScreen()
-    public static void developBetHistoryScreen(JFrame betHistoryFrame){
-        
-        //
-        System.out.println("developoed bet history");
-
-        return;
-    }
-
-
 
     public static void developRaceDesignScreen(HashMap<String, JFrame> frames){//JFrame raceDesignScreen, JFrame homeScreen, JFrame horseSelectionScreen){
         JTextField raceNumInput = new JTextField(5);
@@ -1405,7 +1390,7 @@ class RaceGUI{
         tablePanel.removeAll();
 
         // display each horse's odds in a table
-        String[] columnNames = {"Lane", "Horse Name", "Symbol", "Breed", "Speed", "Stamina", "Confidence"};
+        String[] columnNames = {"Lane", "Horse Name", "Symbol", "Breed", "Speed", "Stamina", "Win Ratio", "Confidence"};
 
         Object[][] laneData = new Object[numLanes][6];
 
@@ -1414,7 +1399,7 @@ class RaceGUI{
             if (racingHorses[lane-1] != null){
                 racingHorses[lane-1].prepareForRace();
                 temp = new Object[]{lane, racingHorses[lane-1].getName(), racingHorses[lane-1].getSymbol(), racingHorses[lane-1].getBreed().getBreed(),
-                    racingHorses[lane-1].getSpeed(), racingHorses[lane-1].getStamina(),racingHorses[lane-1].getConfidence()};
+                    racingHorses[lane-1].getSpeed(), racingHorses[lane-1].getStamina(), racingHorses[lane-1].getWinRatio(), racingHorses[lane-1].getConfidence()};
             }
             else{
                 temp = new Object[]{lane, " ", " ", " ", " ", " "};
@@ -1867,7 +1852,6 @@ class RaceGUI{
     }
 
     public static void developBettingAccountCreationScreen(HashMap<String, JFrame> frames){//JFrame createHorseScreen){
-        System.out.println("here");
         JButton cancel = new JButton("Cancel");
         cancel.addActionListener(e->{
             frames.get("bettingAccountCreationScreen").dispose();
@@ -2123,7 +2107,7 @@ class RaceGUI{
         tablePanel.removeAll();
 
         // display each horse's odds in a table
-        String[] columnNames = {"Lane", "Horse Name", "Symbol", "Total Apples Bet", "Betting Odds"};
+        String[] columnNames = {"Lane", "Horse Name", "Symbol", "Speed", "Stamina", "Confidence", "Win Ratio", "Total Apples Bet", "Betting Odds"};
 
         Object[][] horseData = new Object[racingHorses.length][5];
 
@@ -2159,7 +2143,7 @@ class RaceGUI{
                         oddsString = oddsString + "s";
                     }
 
-                    Object[] temp = new Object[]{(i+1), horse.getName(), horse.getSymbol(), betAmount, oddsString};
+                    Object[] temp = new Object[]{(i+1), horse.getName(), horse.getSymbol(), horse.getSpeed(), horse.getStamina(), horse.getConfidence(), horse.getWinRatio(), betAmount, oddsString};
                     horseData[i]=temp;
                 }
                 else{
@@ -2397,7 +2381,7 @@ class RaceGUI{
         horseTablePanel.setBackground(background);
         horseTablePanel.setBorder(new EmptyBorder(50, 100, 50, 100));
         
-        String[] horseTableColumnNames = {"Lane", "Horse Name", "Symbol", "Total Apples Bet", "Betting Odds", "Finish Time", "Distance Travelled", "Average Speed", "Result"};
+        String[] horseTableColumnNames = {"Lane", "Horse Name", "Symbol", "Previous Confidence", "Confidence", "Change in Confidence", "Total Apples Bet", "Betting Odds", "Finish Time", "Distance Travelled", "Average Speed", "Result"};
 
         Object[][] horseData = new Object[numHorses][8];
 
@@ -2427,7 +2411,6 @@ class RaceGUI{
                     if (writeHeader){
                         pw.println("Date,Track Conditions,Sunny?,Rainy?,Foggy?,Finish Time,% Horses Fallen");
                     }
-
                     double totalFallen = 0;
                     for (Horse h : racingHorses){
                         if (h != null){
@@ -2495,8 +2478,7 @@ class RaceGUI{
                         finishTimeStr = "Did not finish";
                     }
 
-                    //                          {"Lane",            "Horse Name",    "Symbol",    "Total Apples Bet", "Betting Odds", "Finish Time", "Distance Travelled", "Average Speed", "Result"}
-                    Object[] temp = new Object[]{laneIndexArray[0], horse.getName(), horse.getSymbol(), betAmount[0], oddsString, finishTimeStr, ((int)horse.getDistanceTravelled() + " pxl"), ((int)(horse.getDistanceTravelled()/horse.getFinishTime()) + " pxl / sec"), result};
+                    Object[] temp = new Object[]{laneIndexArray[0], horse.getName(), horse.getSymbol(), horse.getPreviousConfidence(), horse.getConfidence(), (horse.getConfidence() - horse.getPreviousConfidence()), betAmount[0], oddsString, finishTimeStr, ((int)horse.getDistanceTravelled() + " pxl"), ((int)(horse.getDistanceTravelled()/horse.getFinishTime()) + " pxl / sec"), result};
                     horseData[laneIndexArray[0]-1]=temp;
                     laneIndexArray[0]++;
 
@@ -2774,7 +2756,7 @@ class RaceGUI{
 
     private static void writeAllHorsesToFile(){
         try (PrintWriter pw = new PrintWriter(new FileWriter("horses.csv"))){
-            pw.println("horseName,horseConfidence,horseSymbol,colour,breed,breedstat1,breedstat2");
+            pw.println("horseName,horseConfidence,horseSymbol,colour,number of races, number of wins,breed,speed,stamina");
 
             // write all horses to CSV
             allHorses.forEach(horse -> {
@@ -2810,7 +2792,6 @@ class RaceGUI{
         }
     }
 
-
     private static void writeBetsToFile(){
 
         for (BettingAccount account : bettingAccounts){
@@ -2823,16 +2804,40 @@ class RaceGUI{
                 writeHeader = false;
             }
 
-            try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))){
+            try (PrintWriter pw = new PrintWriter(new FileOutputStream(file, true))){
 
                 if (writeHeader){
                     pw.println("Date,Username,Bet Amount,Horse,Result,Balance after Bet");
                 }
 
                 Bet previousBet = account.getPreviousBet();
-                pw.println(new Date() + "," + account.getUsername() + "," + previousBet.getAmount() + "," + previousBet.getHorse().getName() + "," + account.getPreviousResult() + "," + account.getBalance());
+                String prevBetAmount;
+                String prevBetHorse;
 
-                pw.close();
+                if (previousBet==null){
+                    prevBetAmount = "no previous bet";
+                    prevBetHorse = "no previous bet";
+                }
+                else{
+                    prevBetAmount = previousBet.getAmount() + "";
+                    if (previousBet.getHorse()!=null){
+                        prevBetHorse = previousBet.getHorse().getName();
+                    }
+                    else{
+                        prevBetHorse = "no horse";
+                    }
+                }
+
+                String previousResult;
+
+                if (account.getPreviousResult() == null){
+                    previousResult = "N/A";
+                }
+                else{
+                    previousResult = account.getPreviousResult();
+                }
+
+                pw.println(new Date() + "," + account.getUsername() + "," + prevBetAmount + "," + prevBetHorse + "," + previousResult + "," + account.getBalance());
             }
             catch (IOException ioEx){
                 System.out.println("Error: Could not write bets to file.");

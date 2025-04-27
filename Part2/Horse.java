@@ -25,6 +25,7 @@ public class Horse
     Breed breed;
     String colour;
     double odds;
+    double previousConfidence;
 
     double stamina;
     double staminaCounter = 0; // this keeps track of when to decrease speed due to stamina
@@ -49,6 +50,10 @@ public class Horse
     long startTime = 0;
     long endTime = 0;
 
+    // for win ratio
+    int numRaces;
+    int numWins;
+
       
     //Constructors of class Horse
 
@@ -58,6 +63,8 @@ public class Horse
         this.speed = breed.getSpeed();
         this.stamina = breed.getStamina();
         this.colour = colour;
+        numRaces = 0;
+        numWins = 0;
         
         // ensure horseName is valid
         if (horseName == null || horseName.length() == 0){
@@ -71,6 +78,7 @@ public class Horse
         // ensure horseConfidence is valid
         if (0<horseConfidence && horseConfidence<1){
             this.horseConfidence = horseConfidence;
+            previousConfidence = horseConfidence;
         }
         else{
             System.out.println("Error: Confidence not in range: " + horseConfidence + ". Horse cannot be initialised. Setting confidence to 0.1");
@@ -134,7 +142,9 @@ public class Horse
         horseConfidence = Double.parseDouble( brokenLine[1] );
         horseSymbol = brokenLine[2].charAt(0);
         colour = brokenLine[3];
-        breed = new Breed(brokenLine[4], Double.parseDouble(brokenLine[5]), Double.parseDouble(brokenLine[6]));
+        numRaces = Integer.parseInt(brokenLine[4]);
+        numWins = Integer.parseInt(brokenLine[5]);
+        breed = new Breed(brokenLine[6], Double.parseDouble(brokenLine[7]), Double.parseDouble(brokenLine[8]));
 
         return;
     }
@@ -142,13 +152,9 @@ public class Horse
     // write the Horse to a file, given a PrintWriter
     public void storeHorseCSV(PrintWriter pw){
 
-        /* Structure of one line of Horse file:
-            name,confidence,representation,colour,breedName,breedSpeed,breedStamina
-        */
-
         String tempHorseName = horseName.replace(" ", "_");
 
-        pw.println(tempHorseName + "," + horseConfidence + "," + horseSymbol + "," + colour + "," + breed.getBreedStringCSV());
+        pw.println(tempHorseName + "," + horseConfidence + "," + horseSymbol + "," + colour + "," + numRaces + "," + numWins + "," + breed.getBreedStringCSV());
         return;
     }
 
@@ -164,10 +170,10 @@ public class Horse
 
         try (PrintWriter pw = new PrintWriter( new FileOutputStream(file, true) )){
             if (writeHeader){
-                pw.println("Date,Result,Average Speed,Finish Time,Horse Fell?,Confidence");
+                pw.println("Date,Result,Average Speed,Finish Time,Horse Fell?,Previous Confidence,Confidence,Change in Confidence");
             }
 
-            pw.println(date + "," + result + "," + averageSpeed + "," + (startTime-endTime) + "," + horseFallen + "," + horseConfidence);
+            pw.println(date + "," + result + "," + averageSpeed + "," + (startTime-endTime) + "," + horseFallen + "," + previousConfidence + "," + horseConfidence + "," + (horseConfidence - previousConfidence));
         }
         catch (IOException e){
             System.out.println("Error: couldn't write race to horse history file");
@@ -176,7 +182,10 @@ public class Horse
 
     // update confidence after winning a race
     public void winRace(){
+        previousConfidence = horseConfidence;
         horseConfidence = horseConfidence + 0.05;
+        numWins = numWins + 1;
+        numRaces = numRaces + 1;
 
         if (horseConfidence >= 1){
             horseConfidence = 0.95;
@@ -187,7 +196,9 @@ public class Horse
 
     // update confidence after losing a race
     public void loseRace(){
+        previousConfidence = horseConfidence;
         horseConfidence = horseConfidence - 0.05;
+        numRaces = numRaces + 1;
 
         if (horseConfidence <= 0){
             horseConfidence = 0.05;
@@ -511,6 +522,9 @@ public class Horse
         return colour;
     }
 
+    public double getPreviousConfidence(){
+        return previousConfidence;
+    }
     
     public double getDistanceTravelled(){
         return distanceTravelled;
@@ -522,6 +536,14 @@ public class Horse
     
     public char getSymbol(){
         return horseSymbol;
+    }
+
+    public double getWinRatio(){
+        if (numRaces == 0 || numWins == 0){
+            return 0;
+        }
+
+        return ((double)numWins/(double)numRaces);
     }
 
     public double getFinishTime(){        
