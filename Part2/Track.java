@@ -64,31 +64,21 @@ class Track{
     }
 
     // constructor to build custom track, given type and raceLength
-    public Track(String trackName, int raceLength){
+    public Track(String trackName, int raceLength, int laneWidth){
         this.trackName = trackName;
         this.raceLength = raceLength;
-        int x = 0;
-        int y = 0;
-        double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-
-        /* template
-            while (distance < raceLength){
-                trackPositions.add(new TrackPosition(x, y, distance));
-                x++;
-                y++
-
-                distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-            }
-        */
 
         if (trackName.toLowerCase().equals("line")){
             trackName = "Line";
-            y=25;
-            while (distance < raceLength){
-                trackPositions.add(new TrackPosition(x, y, distance));
-                x++;
-                distance = x;
-            }
+            buildLineTrack(raceLength, laneWidth);
+        }
+        else if (trackName.toLowerCase().equals("zigzag")){
+            trackName = "ZigZag";
+            buildZigZagTrack(raceLength, laneWidth);
+        }
+        else if (trackName.toLowerCase().equals("oval")){
+            trackName = "Oval";
+            buildOvalTrack(raceLength, laneWidth);
         }
         else{
             System.out.println("Error: unknown Track name " + trackName);
@@ -117,6 +107,83 @@ class Track{
         trackPositions = replacementTrackPositions;
 
         return new Track(newTrackPositions, raceLength, new TrackPosition(currentPosition.getX(), currentPosition.getY(), currentPosition.getDistance()));
+    }
+
+    // build tracks
+
+    public void buildLineTrack(int raceLength, int laneWidth){
+        int y = laneWidth/4; // to get horses near middle of lane
+
+        for (int x = 0; x <= raceLength; x++){
+            trackPositions.add(new TrackPosition(x, y, x));
+        }
+    }
+
+    public void buildZigZagTrack(int raceLength, int width){
+        trackPositions = new LinkedList<>();
+        boolean drawingDown = false;
+        int y = 0;
+
+        trackPositions.add(new TrackPosition(0, 0, 0));
+
+        for (int x = 1; x <= raceLength; x++){
+            
+            if (drawingDown){
+                y = y - 1;
+            }
+            else{
+                y = y + 1;
+            }
+
+            if (y%width==0){
+                drawingDown = !drawingDown;
+            }
+            
+            double distance = Math.sqrt( Math.pow(x,2) + Math.pow(y,2) );
+            trackPositions.add(new TrackPosition(x, y, distance));
+        }
+
+        return;
+    }
+
+    public void buildOvalTrack(int raceLength, int width){
+        int length = (raceLength/2) - width;
+
+        trackPositions = new LinkedList<>();
+        int x = 0;
+        int y = 0;
+        int distance = 0;
+        trackPositions.add(new TrackPosition(x, y, distance));
+        
+        // move forward
+        for (int i = 0; i <= length; i++){
+            x++;
+            distance++;
+            trackPositions.add(new TrackPosition(x, y, distance));
+        }
+
+        // move down
+        for (int i = 0; i <= width; i++){
+            y = y+1;
+            distance++;
+            trackPositions.add(new TrackPosition(x, y, distance));
+        }
+
+        // move backwards
+        for (int i = 0; i <= length; i++){
+            x = x-1;
+            distance++;
+            trackPositions.add(new TrackPosition(x, y, distance));
+        }
+            
+        // move up
+        for (int i = 0; i <= width; i++){
+            y=y-1;
+            distance++;
+            trackPositions.add(new TrackPosition(x, y, distance));
+        }
+            
+        return;
     }
 
 

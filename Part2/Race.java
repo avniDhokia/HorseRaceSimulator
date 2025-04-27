@@ -1,14 +1,22 @@
-import java.util.concurrent.TimeUnit;
-import java.util.ArrayList;
 import java.lang.Math;
 
-/**
- * A three-horse race, each horse running in its own lane
- * for a given distance
- * 
- * @author McRaceface
- * @version 1.0
- */
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.border.*;
+import javax.swing.text.*;
+import javax.swing.table.*;
+
+import java.awt.*;
+import java.awt.event.*;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.Date;
+
+import java.io.*;
+
+
 public class Race
 {
     private int raceLength;
@@ -34,6 +42,12 @@ public class Race
 
         return;
     }
+
+    // constructor used in GUI
+    public Race(){
+        return;
+    }
+
     
     /**
      * Adds a horse to the race in a given lane
@@ -58,77 +72,10 @@ public class Race
      */
     public void startRaceGUI()   // acts as main method
     {
-        //declare a local variable to tell us when the race is finished
-        boolean finished = false;
-             
-        for (Horse h : horses){
-            if (! (h==null)){
-                h.goBackToStart();
-            }
-        }
-        
-                      
-        while (!finished)
-        {
-            for (Horse h : horses){
-                if (! (h==null) ){
-                    moveHorse(h);
-                }
-        	}
+        RaceGUI raceGUI = new RaceGUI();
+        raceGUI.runGUI();
 
-                        
-            //print the race positions
-            printRace();
-            
-            //if any of the three horses has won the race is finished
-            for (Horse h : horses){
-                if (! (h==null)){
-                    if (raceWonBy(h)){
-                        finished = true;
-                    }
-                }
-        	}
-
-            // check if all horses have fallen
-            boolean allFallen = true;
-            for (Horse h : horses){
-                if (! (h==null)){
-                    if (! h.hasFallen()){
-                        allFallen = false;
-                    }
-                }
-        	}
-
-            if (allFallen){
-                finished = true;
-            }
-
-            //wait for 100 milliseconds
-            try{ 
-                TimeUnit.MILLISECONDS.sleep(100);
-            }catch(Exception e){}
-        }
-        
-        // show winning horse
-        Horse winner = null;
-        for (Horse h : horses){
-            if (! (h==null)){
-                if (raceWonBy(h)){
-                    winner = h;
-                }
-            }
-
-        }
-
-        if (winner==null){
-        	System.out.println("No winners");
-        }
-        else{
-            System.out.println("");
-        	System.out.println("And the winner is... " + winner.getName());
-        }
-
-    	return;
+        return;
     }
 
     /**
@@ -228,7 +175,7 @@ public class Race
             //the probability that the horse will move forward depends on the confidence;
             if (Math.random() < theHorse.getConfidence())
             {
-               theHorse.moveForward();
+               theHorse.moveForwardCLI();
             }
             
             //the probability that the horse will fall is very small (max is 0.1)
@@ -298,8 +245,8 @@ public class Race
     {
         //calculate how many spaces are needed before
         //and after the horse
-        int spacesBefore = theHorse.getDistanceTravelled();
-        int spacesAfter = raceLength - 1 - theHorse.getDistanceTravelled();
+        int spacesBefore = (int)theHorse.getDistanceTravelled();
+        int spacesAfter = raceLength - 1 - (int)theHorse.getDistanceTravelled();
         
         //print a | for the beginning of the lane
         System.out.print('|');
