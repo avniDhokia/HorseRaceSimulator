@@ -2,6 +2,7 @@
 A Horse Race simulator with both CLI and GUI implementations.
 
 - [Features](#features)
+- [Dependencies](#dependencies)
 - [Installation](#installation)
 - [Usage](#usage)
 
@@ -44,6 +45,10 @@ Clone the repository. Ensure all the following files are present and in the same
 Also ensure that you have this file for better functioning:
    - `breeds.csv`
      You can add your own custom breeds to this file by using it like a spreadsheet - it is not possible to create new breeds through the GUI.
+
+## Dependencies
+To run this project (either the CLI or GUI implementation), you must ensure you have Java installed.
+
 
 ## Usage
 You can either use the GUI implementation or the CLI implementation.
