@@ -83,4 +83,3 @@ You can either use the GUI implementation or the CLI implementation.
 
    if you want to use the GUI. This invokes the method `startRaceGUI`.
 
-
